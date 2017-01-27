@@ -63,7 +63,6 @@ const int ci_Middle_Line_Tracker_Dark_Address_L = 4;
 const int ci_Middle_Line_Tracker_Dark_Address_H = 5;
 const int ci_Middle_Line_Tracker_Light_Address_L = 6;
 const int ci_Middle_Line_Tracker_Light_Address_H = 7;
-const int ci_Right_Line_Tracker_Dark_Address_L = 8;
 const int ci_Right_Line_Tracker_Dark_Address_H = 9;
 const int ci_Right_Line_Tracker_Light_Address_L = 10;
 const int ci_Right_Line_Tracker_Light_Address_H = 11;
