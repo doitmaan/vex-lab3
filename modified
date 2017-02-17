@@ -29,14 +29,12 @@ I2CEncoder encoder_LeftMotor;
 
 #define DEBUG_MODE_DISPLAY
 //#define DEBUG_MOTORS
-#define DEBUG_LINE_TRACKERS
+//#define DEBUG_LINE_TRACKERS
 //#define DEBUG_ENCODERS
 //#define DEBUG_ULTRASONIC
-#define DEBUG_LINE_TRACKER_CALIBRATION
-#define DEBUG_MOTOR_CALIBRATION
+//#define DEBUG_LINE_TRACKER_CALIBRATION
+//#define DEBUG_MOTOR_CALIBRATION
 
-
-int counter;
 boolean bt_Motors_Enabled = true;
 
 //port pin constants
@@ -104,9 +102,9 @@ byte b_LowByte;
 byte b_HighByte;
 unsigned long ul_Echo_Time;
 unsigned int ui_Left_Line_Tracker_Data;
-unsigned int ui_Middle_Line_Tracker_Data;// what is being read at the moment  so compare with saved value 
+unsigned int ui_Middle_Line_Tracker_Data;
 unsigned int ui_Right_Line_Tracker_Data;
-unsigned int ui_Motors_Speed = 1700;        // Default run speed
+unsigned int ui_Motors_Speed = 1900;        // Default run speed
 unsigned int ui_Left_Motor_Speed;
 unsigned int ui_Right_Motor_Speed;
 long l_Left_Motor_Position;
@@ -194,7 +192,7 @@ void setup() {
   // read saved values from EEPROM
   b_LowByte = EEPROM.read(ci_Left_Line_Tracker_Dark_Address_L);
   b_HighByte = EEPROM.read(ci_Left_Line_Tracker_Dark_Address_H);
-  ui_Left_Line_Tracker_Dark = word(b_HighByte, b_LowByte); //Use this variable to identify if the tracker is on a dark surface
+  ui_Left_Line_Tracker_Dark = word(b_HighByte, b_LowByte);
   b_LowByte = EEPROM.read(ci_Left_Line_Tracker_Light_Address_L);
   b_HighByte = EEPROM.read(ci_Left_Line_Tracker_Dark_Address_H);
   ui_Left_Line_Tracker_Light = word(b_HighByte, b_LowByte);
@@ -266,11 +264,12 @@ void loop()
       encoder_LeftMotor.zero();
       encoder_RightMotor.zero();
       ui_Mode_Indicator_Index = 0;
+      Serial.print("0");
       break;
     } 
   
     case 1:    //Robot Run after 3 seconds
-    {
+    { //Serial.print("1");
       if(bt_3_S_Time_Up)
       {
         readLineTrackers();
@@ -289,70 +288,21 @@ void loop()
         ui_Left_Motor_Speed = constrain(ui_Motors_Speed + ui_Left_Motor_Offset, 1600, 2100);
         ui_Right_Motor_Speed = constrain(ui_Motors_Speed + ui_Right_Motor_Offset, 1600, 2100);
 
+       /***************************************************************************************/
+        RobotForward();
 
-        //1500 = stop
-        //1500 - 2000 = forward
-        //500-1500 = reverse
+       /***************************************************************************************/
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-        //Code for forward driving:
-        //Always calibrate the background with mode 3
-
-       // ui_Left_Line_Tracker_Light = 512;
-       // ui_Middle_Line_Tracker_Light = 512;
-        //ui_Right_Line_Tracker_Light = 512;
-        
-        //DRIVING ON LIGHT LINE BELOW
+        if(bt_Motors_Enabled)
         {
-        
-      if((ui_Left_Line_Tracker_Data -ui_Left_Line_Tracker_Light<=ci_Line_Tracker_Tolerance) && (ui_Middle_Line_Tracker_Data - ui_Middle_Line_Tracker_Light<=ci_Line_Tracker_Tolerance ) && (ui_Right_Line_Tracker_Data - ui_Right_Line_Tracker_Light<=ci_Line_Tracker_Tolerance)){
-          ui_Left_Motor_Speed = 1700;
-          ui_Right_Motor_Speed = 1700;
-          Serial.println("Straight");
-        }
-
-        else if((ui_Left_Line_Tracker_Data -ui_Left_Line_Tracker_Light<=ci_Line_Tracker_Tolerance) && (ui_Middle_Line_Tracker_Data - ui_Middle_Line_Tracker_Light<=ci_Line_Tracker_Tolerance ) && (ui_Right_Line_Tracker_Data - ui_Right_Line_Tracker_Light>=ci_Line_Tracker_Tolerance)){
-          ui_Left_Motor_Speed = 1600;
-          ui_Right_Motor_Speed = 1400;
-          Serial.println("TurnLeft");
-        }
-
-        else if((ui_Left_Line_Tracker_Data -ui_Left_Line_Tracker_Light>=ci_Line_Tracker_Tolerance) && (ui_Middle_Line_Tracker_Data - ui_Middle_Line_Tracker_Light<=ci_Line_Tracker_Tolerance ) && (ui_Right_Line_Tracker_Data - ui_Right_Line_Tracker_Light<=ci_Line_Tracker_Tolerance)){
-          ui_Left_Motor_Speed = 1400;
-          ui_Right_Motor_Speed = 1600;
-          Serial.println("TurnRight");
-        }
-         else if((ui_Left_Line_Tracker_Data -ui_Left_Line_Tracker_Light>=ci_Line_Tracker_Tolerance) && (ui_Middle_Line_Tracker_Data - ui_Middle_Line_Tracker_Light>=ci_Line_Tracker_Tolerance ) ){
-          ui_Left_Motor_Speed = 1400;
-          ui_Right_Motor_Speed = 1750;
-          Serial.println("TurnLeft");
-        }
-
-        else if((ui_Middle_Line_Tracker_Data - ui_Middle_Line_Tracker_Light>=ci_Line_Tracker_Tolerance ) && (ui_Right_Line_Tracker_Data - ui_Right_Line_Tracker_Light>=ci_Line_Tracker_Tolerance)){
-          ui_Left_Motor_Speed = 1750;
-          ui_Right_Motor_Speed = 1400;
-          Serial.println("TurnRight");
-        }
-
-        }
-
-        
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        /*if(bt_Motors_Enabled)*/
-        
           servo_LeftMotor.writeMicroseconds(ui_Left_Motor_Speed);
           servo_RightMotor.writeMicroseconds(ui_Right_Motor_Speed);
-        
-        
-        /*else
+        }
+        else
         {  
           servo_LeftMotor.writeMicroseconds(ci_Left_Motor_Stop); 
           servo_RightMotor.writeMicroseconds(ci_Right_Motor_Stop); 
-        }*/
+        }
 #ifdef DEBUG_MOTORS
         Serial.print("Motors enabled: ");
         Serial.print(bt_Motors_Enabled);
@@ -369,7 +319,7 @@ void loop()
     } 
     
     case 2:    //Calibrate line tracker light levels after 3 seconds
-    {
+    { Serial.print("2");
       if(bt_3_S_Time_Up)
       {
         if(!bt_Cal_Initialized)
@@ -417,7 +367,7 @@ void loop()
     }
     
     case 3:    // Calibrate line tracker dark levels after 3 seconds
-    {
+    { Serial.print("3");
       if(bt_3_S_Time_Up)
       {
         if(!bt_Cal_Initialized)
@@ -465,7 +415,7 @@ void loop()
     }
    
     case 4:    //Calibrate motor straightness after 3 seconds.
-    {
+    { Serial.print("4");
       if(bt_3_S_Time_Up)
       {
         if(!bt_Cal_Initialized)
@@ -611,89 +561,40 @@ void Ping()
   Serial.println(ul_Echo_Time/58); //divide time by 58 to get distance in cm 
 #endif
 }  
+      void RobotForward() {
 
-void ReverseRobot(){
+        ui_Left_Line_Tracker_Data = analogRead(ci_Left_Line_Tracker);
+        ui_Middle_Line_Tracker_Data = analogRead(ci_Middle_Line_Tracker);
+        ui_Right_Line_Tracker_Data = analogRead(ci_Right_Line_Tracker);
 
-  while(!((ui_Left_Line_Tracker_Data <= ui_Left_Line_Tracker_Light) && (ui_Middle_Line_Tracker_Data <= ui_Middle_Line_Tracker_Light) && (ui_Right_Line_Tracker_Data <= ui_Right_Line_Tracker_Light))){
+        if (abs(ui_Middle_Line_Tracker_Data - ui_Middle_Line_Tracker_Light) <= ci_Line_Tracker_Tolerance ) {
+          ui_Left_Motor_Speed = 1600;
+          ui_Right_Motor_Speed = 1600;
+        }
 
-    ui_Left_Line_Tracker_Data = analogRead(ci_Left_Line_Tracker);
-    ui_Middle_Line_Tracker_Data = analogRead(ci_Middle_Line_Tracker);
-    ui_Right_Line_Tracker_Data = analogRead(ci_Right_Line_Tracker);
-    
-    if ((ui_Left_Line_Tracker_Data > ui_Left_Line_Tracker_Light) && (ui_Middle_Line_Tracker_Data > ui_Middle_Line_Tracker_Light) && (ui_Right_Line_Tracker_Data > ui_Right_Line_Tracker_Light)){
-            ui_Left_Motor_Speed = 1400;
-            ui_Right_Motor_Speed = 1400;
-           Serial.println("Backwards1"); 
-    }
-    
-    if(ui_Middle_Line_Tracker_Data > ui_Middle_Line_Tracker_Light){
-      ui_Left_Motor_Speed = 1400;
-      ui_Right_Motor_Speed = 1400;
-      Serial.println("Backwards2"); 
-    }
-
-    else{
-      if(ui_Left_Line_Tracker_Data > ui_Left_Line_Tracker_Light){
-        ui_Left_Motor_Speed = 1400;
-        ui_Right_Motor_Speed = 1500;
-        Serial.println("BackwardsAdjustleft"); 
-      }
-
-      else if(ui_Right_Line_Tracker_Data > ui_Right_Line_Tracker_Light){
-        ui_Left_Motor_Speed = 1500;
-        ui_Right_Motor_Speed = 1400;
-        Serial.println("BackwardsAdjustRight"); 
-      }
-    }
-
-    servo_LeftMotor.writeMicroseconds(ui_Left_Motor_Speed);
-    servo_RightMotor.writeMicroseconds(ui_Right_Motor_Speed);
-    
-  }
-  Serial.println("EXIT"); 
-  counter = 1;  
-}
-
-void SpinBackCCW(){
-    ui_Left_Motor_Speed = 1400;
-    ui_Right_Motor_Speed = 1500;
-    servo_LeftMotor.writeMicroseconds(ui_Left_Motor_Speed);
-    servo_RightMotor.writeMicroseconds(ui_Right_Motor_Speed);
-  while(!(ui_Left_Line_Tracker_Data > ui_Left_Line_Tracker_Light)){
-    ui_Left_Line_Tracker_Data = analogRead(ci_Left_Line_Tracker);
-  }
-  counter = 2;
-}
-
-void RobotForward(){
-
-  ui_Left_Line_Tracker_Data = analogRead(ci_Left_Line_Tracker);
-  ui_Middle_Line_Tracker_Data = analogRead(ci_Middle_Line_Tracker);
-  ui_Right_Line_Tracker_Data = analogRead(ci_Right_Line_Tracker);
-  
-  if (ui_Middle_Line_Tracker_Data > ui_Middle_Line_Tracker_Light){
-            ui_Left_Motor_Speed = 1575;
-            ui_Right_Motor_Speed = 1575;
-          }
-
-          else{
-            if(ui_Left_Line_Tracker_Data > ui_Left_Line_Tracker_Light){
-              ui_Left_Motor_Speed = 1500;
-              ui_Right_Motor_Speed = 1650;
-            }
-
-            else if(ui_Right_Line_Tracker_Data > ui_Right_Line_Tracker_Light){
-              ui_Left_Motor_Speed = 1650;
-              ui_Right_Motor_Speed = 1500;
-            }
-          }
-
-          servo_LeftMotor.writeMicroseconds(ui_Left_Motor_Speed);
-          servo_RightMotor.writeMicroseconds(ui_Right_Motor_Speed);
-
-          /*if ((ui_Left_Line_Tracker_Data <= ui_Left_Line_Tracker_Light) && (ui_Middle_Line_Tracker_Data <= ui_Middle_Line_Tracker_Light) && (ui_Right_Line_Tracker_Data <= ui_Right_Line_Tracker_Light)){
+        else {
+          if (abs(ui_Left_Line_Tracker_Data - ui_Left_Line_Tracker_Light) <= ci_Line_Tracker_Tolerance) {
             ui_Left_Motor_Speed = 1500;
+            ui_Right_Motor_Speed = 1650;
+          }
+
+          else if (abs(ui_Right_Line_Tracker_Data - ui_Right_Line_Tracker_Light) <= ci_Line_Tracker_Tolerance) {
+            ui_Left_Motor_Speed = 1650;
             ui_Right_Motor_Speed = 1500;
+          }
+        }
+
+        servo_LeftMotor.writeMicroseconds(ui_Left_Motor_Speed);
+        servo_RightMotor.writeMicroseconds(ui_Right_Motor_Speed);
+
+        /*if ((ui_Left_Line_Tracker_Data <= ui_Left_Line_Tracker_Light) && (ui_Middle_Line_Tracker_Data <= ui_Middle_Line_Tracker_Light) && (ui_Right_Line_Tracker_Data <= ui_Right_Line_Tracker_Light)){
+          ui_Left_Motor_Speed = 1500;
+          ui_Right_Motor_Speed = 1500;
           }*/
-}
+      }
+
+
+
+
+
 
